@@ -1,61 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uyut - Short-term Apartment Rentals in Astana</title>
+    <title>Агентство «Уют» | Главная</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1>Uyut</h1>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="listings.html">Listings</a></li>
-                    <li><a href="login.html">Login</a></li>
-                    <li><a href="register.html">Register</a></li>
-                </ul>
-            </nav>
-        </div>
+        <div class="logo">УЮТ</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Главная</a></li>
+                <li><a href="#">Мои бронирования</a></li>
+                <li><a href="register.html" class="btn">Регистрация / Вход</a></li>
+            </ul>
+        </nav>
     </header>
-    <main>
-        <section class="hero">
-            <div class="container">
-                <h2>Find your perfect short-term stay in Astana</h2>
-                <p>Discover comfortable apartments for your stay in the capital of Kazakhstan.</p>
-                <form id="search-form">
-                    <input type="text" placeholder="Destination" id="destination">
-                    <input type="date" placeholder="Check-in" id="checkin">
-                    <input type="date" placeholder="Check-out" id="checkout">
-                    <input type="number" placeholder="Guests" id="guests" min="1">
-                    <button type="submit">Search</button>
-                </form>
+
+    <section class="hero">
+        <h1>Аренда квартир в Астане посуточно</h1>
+        <div class="search-bar">
+            <div class="search-item"><label>Город</label><input type="text" value="г. Астана" readonly></div>
+            <div class="search-item"><label>Гости</label>
+                <select id="guest-filter"><option value="1">1+ гость</option><option value="2">2+ гостя</option><option value="4">4+ гостей</option></select>
             </div>
-        </section>
-        <section class="features">
-            <div class="container">
-                <div class="feature">
-                    <h3>Verified Listings</h3>
-                    <p>All apartments are checked for quality and comfort.</p>
-                </div>
-                <div class="feature">
-                    <h3>Flexible Dates</h3>
-                    <p>Stay for a few days or several months.</p>
-                </div>
-                <div class="feature">
-                    <h3>Local Support</h3>
-                    <p>Our team is available to assist you during your stay.</p>
-                </div>
-            </div>
-        </section>
-    </main>
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Uyut. All rights reserved.</p>
+            <button class="btn" onclick="renderApartments()">Найти</button>
         </div>
-    </footer>
-    <script src="js/main.js"></script>
+    </section>
+
+    <section class="catalog-section">
+        <!-- Режим админа -->
+        <div class="admin-controls">
+            <span><strong>Режим администратора:</strong> Управление объектами</span>
+            <button class="btn btn-secondary" onclick="openAddModal()">+ Добавить квартиру</button>
+        </div>
+
+        <h2>Каталог квартир</h2>
+        <br>
+        <div class="apartments-grid" id="grid">
+            <!-- Квартиры генерируются JS -->
+        </div>
+    </section>
+
+    <!-- Модалка добавления квартиры (Админка) -->
+    <div class="modal" id="add-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAddModal()">&times;</span>
+            <h2>Добавить квартиру</h2>
+            <input type="text" id="add-title" placeholder="Название (напр. Студия в центре)">
+            <input type="text" id="add-address" placeholder="Адрес (напр. ул. Сыганак, 10)">
+            <input type="number" id="add-price" placeholder="Цена за сутки (₸)">
+            <input type="number" id="add-guests" placeholder="Вместимость (чел)">
+            <input type="text" id="add-image" placeholder="URL картинки">
+            <button class="btn" style="width:100%" onclick="addApartment()">Сохранить объект</button>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация базы данных в браузере (LocalStorage)
+        const defaultApts = [
+            { id: 1, title: "Студия в ЖК Хайвилл", address: "г. Астана, пр. Р. Кошкарбаева, 10", price: 15000, guests: 2, image: "https://images.unsplash.com/photo-1502672260266-1c1e52f15909?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" },
+            { id: 2, title: "Двухкомнатная на Левом берегу", address: "г. Астана, ул. Сыганак, 18", price: 22000, guests: 4, image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" }
+        ];
+
+        if (!localStorage.getItem('uyut_apartments')) {
+            localStorage.setItem('uyut_apartments', JSON.stringify(defaultApts));
+        }
+
+        function renderApartments() {
+            const grid = document.getElementById('grid');
+            const guestFilter = document.getElementById('guest-filter').value;
+            let apartments = JSON.parse(localStorage.getItem('uyut_apartments'));
+            
+            // Фильтр по гостям
+            apartments = apartments.filter(apt => apt.guests >= guestFilter);
+
+            grid.innerHTML = '';
+            apartments.forEach(apt => {
+                grid.innerHTML += `
+                    <div class="card">
+                        <img src="${apt.image || 'https://via.placeholder.com/500x300?text=Нет+фото'}" class="card-img" alt="фото">
+                        <div class="card-content">
+                            <h3 class="card-title">${apt.title}</h3>
+                            <p class="card-address">${apt.address}</p>
+                            <p>Вместимость: до ${apt.guests} чел.</p>
+                            <span class="card-price">${apt.price} ₸ / сутки</span>
+                            <a href="apartment.html?id=${apt.id}" class="btn btn-secondary" style="text-align:center">Предпросмотр / Бронь</a>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function openAddModal() { document.getElementById('add-modal').style.display = 'flex'; }
+        function closeAddModal() { document.getElementById('add-modal').style.display = 'none'; }
+
+        function addApartment() {
+            const title = document.getElementById('add-title').value;
+            const address = document.getElementById('add-address').value;
+            const price = document.getElementById('add-price').value;
+            const guests = document.getElementById('add-guests').value;
+            const image = document.getElementById('add-image').value;
+
+            if(!title || !address || !price) return alert('Заполните обязательные поля!');
+
+            const apartments = JSON.parse(localStorage.getItem('uyut_apartments'));
+            const newId = apartments.length > 0 ? apartments[apartments.length - 1].id + 1 : 1;
+            
+            apartments.push({ id: newId, title, address, price, guests, image });
+            localStorage.setItem('uyut_apartments', JSON.stringify(apartments));
+            
+            closeAddModal();
+            renderApartments();
+            
+            // Очистка формы
+            document.getElementById('add-title').value = '';
+            document.getElementById('add-address').value = '';
+            document.getElementById('add-price').value = '';
+        }
+
+        renderApartments();
+    </script>
 </body>
 </html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Предпросмотр объекта</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">УЮТ</div>
+        <nav>
+            <ul><li><a href="../index.html">← В каталог</a></li></ul>
+        </nav>
+    </header>
+
+    <div class="details-container">
+        <img id="detail-img" src="" class="details-img" alt="Фото квартиры">
+        <div class="details-info">
+            <h1 id="detail-title">Загрузка...</h1>
+            <p class="card-address" id="detail-address"></p>
+            <p><strong>Максимальное количество гостей:</strong> <span id="detail-guests"></span> чел.</p>
+            <div class="price" id="detail-price"></div>
+
+            <div class="booking-form">
+                <h3>Забронировать даты</h3>
+                <input type="date" style="width: 100%; padding: 10px; margin: 10px 0;">
+                <input type="text" placeholder="Ваше имя" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                <input type="tel" placeholder="Телефон" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                <button class="btn" style="width: 100%;" onclick="bookApartment()">Оформить бронь</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем скрипт предпросмотра -->
+    <script src="../js/apartment.js"></script>
+</body>
+</html>
