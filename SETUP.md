@@ -132,6 +132,45 @@ const PORT = 3001;
 - Docker-контейнеризация
 - Автоматическое резервное копирование БД
 
+## 🛠️ Утилиты базы данных
+
+Проект включает утилиту командной строки для работы с БД:
+
+```bash
+# Инициализация таблиц + тестовые данные
+npm run db init
+
+# Просмотр всех данных
+npm run db apartments      # Список квартир
+npm run db bookings        # Список бронирований
+npm run db saved-data      # Все ключ-значение пары
+
+# Работа с saved_data
+npm run db set <key> <value>    # Сохранить значение
+npm run db get <key>            # Получить значение
+npm run db delete <key>         # Удалить ключ
+
+# Другие команды
+npm run db tables               # Список таблиц
+npm rundb describe <table>   # Описать таблицу
+npm run db clear               # Очистить все данные
+npm run db reset               # Пересоздать БД
+npm run db shell               # Открыть SQLite shell
+```
+
+### Примеры использования:
+
+```bash
+# Установить настройку темы сайта
+npm run db set site_theme "dark"
+
+# Получить значение
+npm run db get site_theme
+
+# Удалить устаревший ключ
+npm run db delete old_config
+```
+
 ---
 
 **Вопросы?** Создайте issue в репозитории.

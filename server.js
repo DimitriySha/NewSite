@@ -63,10 +63,18 @@ db.exec(`
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
     );
 
+    CREATE TABLE IF NOT EXISTS saved_data (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        key TEXT NOT NULL UNIQUE,
+        value TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_apartments_price ON apartments(price);
     CREATE INDEX IF NOT EXISTS idx_apartments_guests ON apartments(guests);
     CREATE INDEX IF NOT EXISTS idx_bookings_apartment ON bookings(apartment_id);
     CREATE INDEX IF NOT EXISTS idx_bookings_dates ON bookings(check_in_date, check_out_date);
+    CREATE INDEX IF NOT EXISTS idx_saved_data_key ON saved_data(key);
 `);
 
 // Insert default apartments if table is empty
@@ -248,6 +256,97 @@ app.get('/api/bookings/:apartment_id', (req, res) => {
             ORDER BY check_in_date DESC
         `).all(req.params.apartment_id);
         res.json({ success: true, data: bookings });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Saved Data (Key-Value store) endpoints
+app.get('/api/saved-data', (req, res) => {
+    try {
+        const { key } = req.query;
+        let query = 'SELECT * FROM saved_data';
+        const params = [];
+
+        if (key) {
+            query += ' WHERE key = ?';
+            params.push(key);
+        }
+
+        query += ' ORDER BY timestamp DESC';
+        const data = db.prepare(query).all(...params);
+        res.json({ success: true, data });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/saved-data/:key', (req, res) => {
+    try {
+        const item = db.prepare('SELECT * FROM saved_data WHERE key = ?').get(req.params.key);
+        if (!item) {
+            return res.status(404).json({ success: false, error: 'Key not found' });
+        }
+        res.json({ success: true, data: item });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.post('/api/saved-data', (req, res) => {
+    try {
+        const { key, value } = req.body;
+
+        if (!key) {
+            return res.status(400).json({ success: false, error: 'Key is required' });
+        }
+
+        // UPSERT: insert or update
+        const existing = db.prepare('SELECT id FROM saved_data WHERE key = ?').get(key);
+
+        if (existing) {
+            db.prepare('UPDATE saved_data SET value = ?, timestamp = CURRENT_TIMESTAMP WHERE key = ?').run(value, key);
+            const updated = db.prepare('SELECT * FROM saved_data WHERE key = ?').get(key);
+            res.json({ success: true, data: updated, action: 'updated' });
+        } else {
+            const result = db.prepare('INSERT INTO saved_data (key, value) VALUES (?, ?)').run(key, value);
+            const inserted = db.prepare('SELECT * FROM saved_data WHERE id = ?').get(result.lastInsertRowid);
+            res.json({ success: true, data: inserted, action: 'created' });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.put('/api/saved-data/:key', (req, res) => {
+    try {
+        const key = req.params.key;
+        const { value } = req.body;
+
+        const existing = db.prepare('SELECT * FROM saved_data WHERE key = ?').get(key);
+        if (!existing) {
+            return res.status(404).json({ success: false, error: 'Key not found' });
+        }
+
+        db.prepare('UPDATE saved_data SET value = ?, timestamp = CURRENT_TIMESTAMP WHERE key = ?').run(value, key);
+        const updated = db.prepare('SELECT * FROM saved_data WHERE key = ?').get(key);
+        res.json({ success: true, data: updated });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.delete('/api/saved-data/:key', (req, res) => {
+    try {
+        const key = req.params.key;
+        const existing = db.prepare('SELECT * FROM saved_data WHERE key = ?').get(key);
+
+        if (!existing) {
+            return res.status(404).json({ success: false, error: 'Key not found' });
+        }
+
+        db.prepare('DELETE FROM saved_data WHERE key = ?').run(key);
+        res.json({ success: true, message: 'Data deleted successfully' });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }

@@ -75,6 +75,34 @@ class ApiClient {
     async getBookings(apartmentId) {
         return this.request(`/bookings/${apartmentId}`);
     }
+
+    // Saved Data (Key-Value Store)
+    async getSavedData(key = null) {
+        if (key) {
+            return this.request(`/saved-data/${encodeURIComponent(key)}`);
+        }
+        return this.request('/saved-data');
+    }
+
+    async saveData(key, value) {
+        return this.request('/saved-data', {
+            method: 'POST',
+            body: JSON.stringify({ key, value }),
+        });
+    }
+
+    async updateSavedData(key, value) {
+        return this.request(`/saved-data/${encodeURIComponent(key)}`, {
+            method: 'PUT',
+            body: JSON.stringify({ value }),
+        });
+    }
+
+    async deleteSavedData(key) {
+        return this.request(`/saved-data/${encodeURIComponent(key)}`, {
+            method: 'DELETE',
+        });
+    }
 }
 
 // Create global instance

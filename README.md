@@ -67,13 +67,17 @@ node server.js
 ### Создаваемые таблицы:
 
 1. **apartments** - объекты недвижимости
-   - id, title, address, price, guests, image, description, timestamps
+   - id, title, address, price, guests, image, description, created_at, updated_at
 
 2. **users** - пользователи
    - id, full_name, email, phone, password_hash, created_at
 
 3. **bookings** - бронирования
-   - id, apartment_id, user_id, check_in_date, check_out_date, guest_name, guest_phone, total_price, status
+   - id, apartment_id, user_id, check_in_date, check_out_date, guest_name, guest_phone, total_price, status, created_at
+
+4. **saved_data** - универсальное хранилище ключ-значение
+   - id, key (UNIQUE), value, timestamp
+   - Для хранения настроек, конфигурации, произвольных данных
 
 ### Начальные данные
 
@@ -91,6 +95,13 @@ node server.js
 ### Bookings
 - `POST   /api/bookings` - Создать бронь
 - `GET    /api/bookings/:apartment_id` - Бронирования квартиры
+
+### Saved Data (Key-Value Store)
+- `GET    /api/saved-data` - Получить все записи (опционально ?key=xxx)
+- `GET    /api/saved-data/:key` - Получить значение по ключу
+- `POST   /api/saved-data` - Создать/обновить запись {key, value}
+- `PUT    /api/saved-data/:key` - Обновить значение {value}
+- `DELETE /api/saved-data/:key` - Удалить запись
 
 ## 🎨 Дизайн
 
@@ -135,6 +146,27 @@ fetch('/api/bookings', {
         total_price: 60000
     })
 });
+```
+
+### Универсальное хранилище (saved_data):
+
+```javascript
+// Сохранить настройку
+await api.saveData('site_theme', 'dark');
+await api.saveData('default_guests', '2');
+
+// Получить значение
+const result = await api.getSavedData('site_theme');
+console.log(result.data.value); // 'dark'
+
+// Получить все записи
+const all = await api.getSavedData();
+
+// Обновить
+await api.updateSavedData('site_theme', 'light');
+
+// Удалить
+await api.deleteSavedData('default_guests');
 ```
 
 ## 🛠️ Технологии
