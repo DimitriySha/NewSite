@@ -4,29 +4,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     const apartmentId = urlParams.get('id');
 
     if (!apartmentId) {
-        showError('Не указан ID квартиры');
+        showError('Не указан ID квартиры. Пожалуйста, выберите квартиру из каталога.');
         return;
     }
 
     await loadApartment(apartmentId);
 });
 
+function showError(message) {
+    const container = document.getElementById('details-container');
+    container.innerHTML = `
+        <div class="error-state">
+            <div class="error-icon">⚠️</div>
+            <h2>Ошибка</h2>
+            <p>${message}</p>
+            <a href="../index.html" class="btn btn-primary">Вернуться на главную</a>
+        </div>
+    `;
+}
+
 async function loadApartment(id) {
     const container = document.getElementById('details-container');
 
     try {
+        container.innerHTML = `
+            <div class="loading" style="min-height: 400px;">
+                <div>Загрузка данных...</div>
+            </div>
+        `;
+
         const response = await api.getApartment(id);
         const apartment = response.data;
 
         if (!apartment) {
-            showError('Квартира не найдена');
+            showError('Квартира не найдена. Возможно, она была удалена.');
             return;
         }
 
         renderApartmentDetails(apartment);
     } catch (error) {
         console.error('Error loading apartment:', error);
-        showError('Ошибка загрузки данных');
+        showError('Не удалось загрузить информацию о квартире. Проверьте соединение с интернетом и попробуйте снова.');
     }
 }
 
@@ -101,6 +119,12 @@ async function handleBooking(event, apartmentId, pricePerNight) {
     const checkIn = new Date(formData.get('check_in'));
     const checkOut = new Date(formData.get('check_out'));
 
+    // Validate dates
+    if (checkOut <= checkIn) {
+        resultDiv.innerHTML = '<div class="error-message">Дата выезда должна быть позже даты заезда</div>';
+        return;
+    }
+
     // Calculate nights and total price
     const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
     if (nights <= 0) {
@@ -120,20 +144,36 @@ async function handleBooking(event, apartmentId, pricePerNight) {
     };
 
     try {
-        resultDiv.innerHTML = '<div class="loading">Обработка...</div>';
+        resultDiv.innerHTML = '<div class="loading">Обработка бронирования...</div>';
         const response = await api.createBooking(booking);
 
         resultDiv.innerHTML = `
             <div class="success-message">
-                <strong>✅ Бронь подтверждена!</strong><br>
-                Номер брони: #${response.data.booking_id}<br>
-                Сумма: ${totalPrice.toLocaleString()} ₸ (${nights} суток)
+                <strong>✅ Бронь подтверждена!</strong>
+                <div style="margin-top: 0.5rem; line-height: 1.6;">
+                    Номер брони: <strong>#${response.data.booking_id}</strong><br>
+                    Сумма: ${totalPrice.toLocaleString()} ₸ (${nights} суток)<br>
+                    <small>На ваши номера телефона придет подтверждение</small>
+                </div>
             </div>
         `;
+
+        // Reset form
         form.reset();
+        // Set default dates again
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        form.check_in.value = formatDate(new Date());
+        form.check_out.value = formatDate(tomorrow);
+
     } catch (error) {
         console.error('Booking error:', error);
-        resultDiv.innerHTML = '<div class="error-message">Ошибка при бронировании. Попробуйте позже.</div>';
+        resultDiv.innerHTML = `
+            <div class="error-message">
+                <strong>❌ Ошибка бронирования</strong><br>
+                ${error.message || 'Попробуйте позже или свяжитесь с нами'}
+            </div>
+        `;
     }
 }
 

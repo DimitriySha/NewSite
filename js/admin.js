@@ -199,12 +199,17 @@ function showError(message) {
 }
 
 function showNotification(message, type) {
+    // Remove existing notifications
+    const existing = document.querySelector('.notification');
+    if (existing) existing.remove();
+
     // Create notification element
     const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
+    notification.className = `notification notification-${type}`;
     notification.innerHTML = `
-        <span>${type === 'success' ? '✅' : '❌'} ${message}</span>
-        <button onclick="this.parentElement.remove()">&times;</button>
+        <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+        <span class="notification-message">${message}</span>
+        <button class="notification-close" onclick="this.parentElement.remove()">&times;</button>
     `;
 
     // Add styles
@@ -212,25 +217,33 @@ function showNotification(message, type) {
         position: 'fixed',
         top: '20px',
         right: '20px',
-        padding: '1rem 2rem',
-        borderRadius: '8px',
-        background: type === 'success' ? '#27ae60' : '#e74c3c',
-        color: 'white',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        padding: '1rem 1.5rem',
+        borderRadius: '12px',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
+        gap: '0.75rem',
         zIndex: '10001',
-        animation: 'slideIn 0.3s ease'
+        animation: 'slideIn 0.3s ease',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+        minWidth: '300px',
+        maxWidth: '500px',
     });
+
+    const colors = {
+        success: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+        error: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)',
+        info: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)'
+    };
+    notification.style.background = colors[type] || colors.error;
+    notification.style.color = 'white';
 
     document.body.appendChild(notification);
 
-    // Auto remove after 3 seconds
+    // Auto remove after 4 seconds
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    }, 4000);
 }
 
 // Add animation styles
@@ -263,7 +276,7 @@ style.textContent = `
         justify-content: space-between;
         align-items: center;
         padding: 1.5rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--gradient-primary, linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%));
         color: white;
     }
 
@@ -325,12 +338,14 @@ style.textContent = `
         width: 60px;
         height: 40px;
         object-fit: cover;
-        border-radius: 4px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .admin-table .price {
-        color: #e67e22;
-        font-weight: 600;
+        color: var(--primary-color, #ff6b35);
+        font-weight: 700;
+        font-size: 1.1rem;
     }
 
     .admin-table .actions {
@@ -342,14 +357,11 @@ style.textContent = `
         padding: 0.5rem 0.75rem;
         font-size: 0.9rem;
         min-height: auto;
-    }
-
-    .btn-danger {
-        background: #e74c3c;
-    }
-
-    .btn-danger:hover {
-        background: #c0392b;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .no-data {
@@ -370,11 +382,14 @@ style.textContent = `
     }
 
     .badge {
-        background: rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.15);
         padding: 0.5rem 1rem;
-        border-radius: 20px;
+        border-radius: 50px;
         font-size: 0.85rem;
-        border: 1px solid rgba(255,255,255,0.3);
+        font-weight: 600;
+        border: 1px solid rgba(255,255,255,0.25);
+        backdrop-filter: blur(10px);
+        letter-spacing: 0.3px;
     }
 
     @media (max-width: 768px) {
