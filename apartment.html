@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apartment Details - Uyut</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Uyut</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="listings.html">Listings</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <div class="apartment-detail">
+                <!-- This will be populated by JavaScript based on selected apartment -->
+                <div class="apartment-photos">
+                    <div class="main-photo">
+                        <!-- Main photo will be inserted here -->
+                    </div>
+                    <div class="thumbnail-photos">
+                        <!-- Thumbnails will be inserted here -->
+                    </div>
+                </div>
+                <div class="apartment-info">
+                    <h2 class="apartment-name"></h2>
+                    <div class="apartment-price">
+                        <span class="price-per-night"></span> per night
+                    </div>
+                    <div class="apartment-rating">
+                        <!-- Rating stars -->
+                    </div>
+                    <div class="apartment-amenities">
+                        <!-- Amenities list -->
+                    </div>
+                    <div class="apartment-description">
+                        <!-- Description -->
+                    </div>
+                    <div class="booking-section">
+                        <form id="booking-form">
+                            <input type="date" id="booking-checkin" placeholder="Check-in" required>
+                            <input type="date" id="booking-checkout" placeholder="Check-out" required>
+                            <input type="number" id="booking-guests" placeholder="Guests" min="1" required>
+                            <button type="submit" class="btn-primary">Book Now</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Uyut. All rights reserved.</p>
+        </div>
+    </footer>
+    <script src="js/main.js"></script>
+</body>
+</html>
