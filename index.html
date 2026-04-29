@@ -2,8 +2,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Агентство «Уют» | Главная</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -11,114 +15,63 @@
         <nav>
             <ul>
                 <li><a href="index.html">Главная</a></li>
-                <li><a href="#">Мои бронирования</a></li>
-                <li><a href="register.html" class="btn">Регистрация / Вход</a></li>
+                <li><a href="pages/admin.html" class="btn btn-outline">Управление</a></li>
+                <li><a href="pages/register.html" class="btn">Регистрация / Вход</a></li>
             </ul>
         </nav>
     </header>
 
     <section class="hero">
-        <h1>Аренда квартир в Астане посуточно</h1>
-        <div class="search-bar">
-            <div class="search-item"><label>Город</label><input type="text" value="г. Астана" readonly></div>
-            <div class="search-item"><label>Гости</label>
-                <select id="guest-filter"><option value="1">1+ гость</option><option value="2">2+ гостя</option><option value="4">4+ гостей</option></select>
+        <div class="hero-content">
+            <h1>Аренда квартир в Астане посуточно</h1>
+            <p class="hero-subtitle">Найдите идеальное жилье дляyour stay в столице</p>
+            <div class="search-bar">
+                <div class="search-item">
+                    <label>Город</label>
+                    <input type="text" value="г. Астана" readonly>
+                </div>
+                <div class="search-item">
+                    <label>Гости</label>
+                    <select id="guest-filter">
+                        <option value="1">1+ гость</option>
+                        <option value="2">2+ гостя</option>
+                        <option value="3">3+ гостей</option>
+                        <option value="4">4+ гостей</option>
+                    </select>
+                </div>
+                <div class="search-item">
+                    <label>Цена (₸)</label>
+                    <select id="price-filter">
+                        <option value="">Любая</option>
+                        <option value="10000">До 10к</option>
+                        <option value="20000">До 20к</option>
+                        <option value="30000">До 30к</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="loadApartments()">Найти</button>
             </div>
-            <button class="btn" onclick="renderApartments()">Найти</button>
         </div>
     </section>
 
     <section class="catalog-section">
-        <!-- Режим админа -->
-        <div class="admin-controls">
-            <span><strong>Режим администратора:</strong> Управление объектами</span>
-            <button class="btn btn-secondary" onclick="openAddModal()">+ Добавить квартиру</button>
+        <div class="section-header">
+            <h2>Каталог квартир</h2>
+            <p class="section-subtitle">Выберите подходящий вариант из нашей коллекции</p>
         </div>
-
-        <h2>Каталог квартир</h2>
-        <br>
         <div class="apartments-grid" id="grid">
-            <!-- Квартиры генерируются JS -->
+            <!-- Apartments will be loaded via API -->
+            <div class="loading">Загрузка...</div>
         </div>
     </section>
 
-    <!-- Модалка добавления квартиры (Админка) -->
-    <div class="modal" id="add-modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeAddModal()">&times;</span>
-            <h2>Добавить квартиру</h2>
-            <input type="text" id="add-title" placeholder="Название (напр. Студия в центре)">
-            <input type="text" id="add-address" placeholder="Адрес (напр. ул. Сыганак, 10)">
-            <input type="number" id="add-price" placeholder="Цена за сутки (₸)">
-            <input type="number" id="add-guests" placeholder="Вместимость (чел)">
-            <input type="text" id="add-image" placeholder="URL картинки">
-            <button class="btn" style="width:100%" onclick="addApartment()">Сохранить объект</button>
+    <footer class="site-footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Агентство «Уют». Все права защищены.</p>
+            <p>г. Астана, ул. Сыганак, 18 | +7 (700) 123-45-67</p>
         </div>
-    </div>
+    </footer>
 
-    <script>
-        // Инициализация базы данных в браузере (LocalStorage)
-        const defaultApts = [
-            { id: 1, title: "Студия в ЖК Хайвилл", address: "г. Астана, пр. Р. Кошкарбаева, 10", price: 15000, guests: 2, image: "https://images.unsplash.com/photo-1502672260266-1c1e52f15909?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" },
-            { id: 2, title: "Двухкомнатная на Левом берегу", address: "г. Астана, ул. Сыганак, 18", price: 22000, guests: 4, image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" }
-        ];
-
-        if (!localStorage.getItem('uyut_apartments')) {
-            localStorage.setItem('uyut_apartments', JSON.stringify(defaultApts));
-        }
-
-        function renderApartments() {
-            const grid = document.getElementById('grid');
-            const guestFilter = document.getElementById('guest-filter').value;
-            let apartments = JSON.parse(localStorage.getItem('uyut_apartments'));
-            
-            // Фильтр по гостям
-            apartments = apartments.filter(apt => apt.guests >= guestFilter);
-
-            grid.innerHTML = '';
-            apartments.forEach(apt => {
-                grid.innerHTML += `
-                    <div class="card">
-                        <img src="${apt.image || 'https://via.placeholder.com/500x300?text=Нет+фото'}" class="card-img" alt="фото">
-                        <div class="card-content">
-                            <h3 class="card-title">${apt.title}</h3>
-                            <p class="card-address">${apt.address}</p>
-                            <p>Вместимость: до ${apt.guests} чел.</p>
-                            <span class="card-price">${apt.price} ₸ / сутки</span>
-                            <a href="apartment.html?id=${apt.id}" class="btn btn-secondary" style="text-align:center">Предпросмотр / Бронь</a>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function openAddModal() { document.getElementById('add-modal').style.display = 'flex'; }
-        function closeAddModal() { document.getElementById('add-modal').style.display = 'none'; }
-
-        function addApartment() {
-            const title = document.getElementById('add-title').value;
-            const address = document.getElementById('add-address').value;
-            const price = document.getElementById('add-price').value;
-            const guests = document.getElementById('add-guests').value;
-            const image = document.getElementById('add-image').value;
-
-            if(!title || !address || !price) return alert('Заполните обязательные поля!');
-
-            const apartments = JSON.parse(localStorage.getItem('uyut_apartments'));
-            const newId = apartments.length > 0 ? apartments[apartments.length - 1].id + 1 : 1;
-            
-            apartments.push({ id: newId, title, address, price, guests, image });
-            localStorage.setItem('uyut_apartments', JSON.stringify(apartments));
-            
-            closeAddModal();
-            renderApartments();
-            
-            // Очистка формы
-            document.getElementById('add-title').value = '';
-            document.getElementById('add-address').value = '';
-            document.getElementById('add-price').value = '';
-        }
-
-        renderApartments();
-    </script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
